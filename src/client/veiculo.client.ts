@@ -2,8 +2,12 @@ import axios, { AxiosInstance } from "axios";
 
 import { Veiculo } from "@/model/veiculo";
 import { Movimentacao } from "@/model/movimentacao";
+import { PageRequest } from "../model/Page/page-request";
+import { PageResponse } from "../model/Page/page-response";
 
-export class VeiculoClient {
+
+
+class VeiculoClient {
 
     private axiosClient : AxiosInstance;
 
@@ -38,28 +42,43 @@ export class VeiculoClient {
         }
     }
 
-    public async cadastrar(veiculo : Veiculo) : Promise<void> {
+    public async cadastrar(veiculo : Veiculo) : Promise<string> {
         try {
-            return (await this.axiosClient.post('/', veiculo))
+            return (await this.axiosClient.post<string>('', veiculo)).data
         } catch (error : any) {
             return Promise.reject(error.response)
         }
     }
 
-    public async editar(veiculo : Veiculo) : Promise<void> {
+    public async editar(id : number, veiculo : Veiculo) : Promise<string> {
         try {
-            return (await this.axiosClient.put(`/${veiculo.id}`, veiculo)).data
+            return (await this.axiosClient.put<string>(`/${id}`, veiculo)).data
         } catch (error : any) {
             return Promise.reject(error.response)
         }
     }
 
-    public async deletar(veiculo : Veiculo) : Promise<string> {
+    public async deletar(id : number) : Promise<string> {
         try {
-            return (await this.axiosClient.delete(`/${veiculo.id}`)).data
+            return (await this.axiosClient.delete(`/${id}`)).data
         } catch (error : any) {
             return Promise.reject(error.response)
         }
     }
 
+    public async findByFiltrosPaginado(pageRequest : PageRequest) : Promise<PageResponse<Veiculo>> {
+        try {
+            let requestPath = ''
+
+            requestPath += `?page=${pageRequest.currentPage}`
+            requestPath += `&size=${pageRequest.pageSize}`
+            requestPath += `&sort=${pageRequest.sortField === undefined ? '' : pageRequest.sortField}, ${pageRequest.direction}`
+ 
+            return (await this.axiosClient.get<PageResponse<Veiculo>>(requestPath, {params : {filtros : pageRequest.filter } })).data
+        } catch (error : any) {
+            return Promise.reject(error.response)
+        }
+    }
 }
+
+export default new VeiculoClient();
